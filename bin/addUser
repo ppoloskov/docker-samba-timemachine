@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -eux
-
-useradd -s /bin/false -d /dev/null -g timemachine $1
-pdbedit -a $1
