@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv sh
+
+echo "run avahi-daemon"
+avahi-daemon
+

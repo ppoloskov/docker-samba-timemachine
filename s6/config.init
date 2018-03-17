@@ -1,0 +1,12 @@
+#!/usr/bin/with-contenv sh
+
+PASSWORD=$(cat /dev/urandom | tr -dc "a-zA-Z0-9-_" | fold -w 10 | head -n1) 
+groupadd -r -g $SMBGID $GROUP 
+useradd --no-log-init -u $SMBUID -r -g $GROUP $USERNAME 
+(echo "$PASSWORD"; echo "$PASSWORD") | smbpasswd -s -a -c /etc/samba/smb.conf $USERNAME
+
+echo -e "\n\n"
+echo -e "Write down credentials:"
+echo -e "Username:\t$USERNAME"
+echo -e "Password:\t$PASSWORD"
+echo -e "\n\n"

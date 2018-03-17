@@ -1,34 +1,31 @@
 FROM fedora:rawhide
 MAINTAINER Paul Poloskov "pavel@poloskov.net"
 
-ENV USERNAME="paul"
-ENV GROUP="timemachine"
-ENV s6_overlay_version="1.17.1.1"
+ENV USERNAME="samba" \
+    SMBUID=1001 \
+    GROUP="timemachine" \
+    SMBGID=1001 \
+    s6_overlay_version="1.17.1.1" 
 
 # Install s6-overlay
-ENV S6_LOGGING="1"
+ENV S6_LOGGING="0"
 
-RUN yum -y update; yum -y install avahi curl samba; yum clean all; yum -y autoremove; rm -rf /var/cache/dnf/*
+RUN set -xe;  \
+    dnf -y update && \
+    dnf -y install avahi curl samba && \
+    dnf clean all && \
+    curl -L \
+        https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-amd64.tar.gz -o /tmp/s6.tgz && \
+    tar zxf /tmp/s6.tgz -C / && \
+    rm -rf /tmp/s6.tgz
 
-COPY config/ /etc/
-COPY bin/ /usr/local/bin/
+COPY etc/ /etc/
+COPY s6/config.init /etc/cont-init.d/00-config
+COPY s6/avahi.run /etc/services.d/avahi/run
+COPY s6/smbd.run /etc/services.d/smbd/run
+COPY s6/nmbd.run /etc/services.d/nmbd/run
 
-RUN chmod +x /usr/local/bin/addUser /usr/local/bin/delUser
-RUN set -xe \
-    && curl -L \
-        https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-amd64.tar.gz \
-        -o /tmp/s6-overlay-amd64.tar.gz \
-    && tar zxf /tmp/s6-overlay-amd64.tar.gz -C / \
-    && rm -rf /tmp/s6-overlay-amd64.tar.gz \
-    && groupadd -r ${GROUP} \
-    && useradd -D --no-log-init -r -g ${GROUP} ${USERNAME} \
-    && PASSWORD=$(cat /dev/urandom | tr -dc "a-zA-Z0-9-_" | fold -w 50 | head -n1) \
-    && (echo "$PASSWORD"; echo "$PASSWORD") | smbpasswd -sa -c /config/smb.conf $USERNAME
-    
-   # && chmod -R +x /usr/local/bin/run.sh /etc/s6.d \
-   # && chown -R $USERNAME:$USERNAME /etc/s6.d /var/log/samba /var/cache/samba /var/lib/samba /var/run/samba
-
-VOLUME [ "/timemachine" ]
+VOLUME [ "/share" "/timemachine" ]
 
 EXPOSE 137/udp 138/udp 139/tcp 445/tcp 5353
 
