@@ -1,12 +1,13 @@
 #!/usr/bin/with-contenv sh
 
-PASSWORD=$(cat /dev/urandom | tr -dc "a-zA-Z0-9-_" | fold -w 10 | head -n1) 
-addgroup -S -g $SMBGID samba 
-adduser -u $SMBUID -S -G samba samba
-(echo "$PASSWORD"; echo "$PASSWORD") | smbpasswd -s -a -c /etc/samba/smb.conf samba
+userSetup () {
+	PASSWORD=$(cat /dev/urandom | tr -dc "a-zA-Z0-9-_" | fold -w 10 | head -n1) 
+	addgroup -S -g $SMBGID samba 
+	adduser -u $SMBUID -S -G samba samba
+	(echo "$PASSWORD"; echo "$PASSWORD") | smbpasswd -s -a -c /etc/samba/smb.conf samba
+	echo -e "\nWrite down credentials:\nUsername:\tsamba\nPassword:\t$PASSWORD\n" > /user.txt
+}
 
-echo -e "\n\n"
-echo -e "Write down credentials:"
-echo -e "Username:\t$USERNAME"
-echo -e "Password:\t$PASSWORD"
-echo -e "\n\n"
+[ ! -f /user.txt ] && userSetup 
+
+cat /user.txt 

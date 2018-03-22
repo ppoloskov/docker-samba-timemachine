@@ -11,7 +11,7 @@ ENV USERNAME="samba" \
 ENV S6_LOGGING="0"
 
 RUN apk --no-cache --no-progress upgrade && \
-    apk add --no-cache -U samba-server curl avahi && \
+    apk add --no-cache -U samba-server samba-common-tools curl avahi && \
     OUT=$(curl https://github.com/just-containers/s6-overlay/releases/latest | cut -d '/' -f 8 | cut -d '"' -f 1) && \
     curl https://github.com/just-containers/s6-overlay/releases/download/v1.21.4.0/s6-overlay-amd64.tar.gz -L -o /tmp/s6.tgz && \
     tar xvfz /tmp/s6.tgz -C / && \
